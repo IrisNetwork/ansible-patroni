@@ -1,0 +1,7 @@
+---
+
+# Locales to configure
+elao_locales: []
+
+# Default locale
+elao_locales_default: ~

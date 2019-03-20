@@ -1,0 +1,4 @@
+---
+
+ssh_user: postgres
+ssh_key_type: ed25519

@@ -1,0 +1,88 @@
+#jinja2: trim_blocks:True,lstrip_blocks:True
+scope: {{ item.key }}
+name: {{ ansible_hostname }}
+
+restapi:
+  listen: {{ ansible_default_ipv4.address }}:{{ item.value.port + 2000 }}
+  connect_address: {{ ansible_default_ipv4.address }}:{{ item.value.port + 2000 }}
+
+etcd:
+  host: {{ ansible_default_ipv4.address }}:2379
+bootstrap:
+  dcs:
+    synchronous_mode: true
+    synchronous_mode_strict: false
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: false
+      use_slots: true
+      parameters:
+        archive_mode: "on"
+        archive_timeout: 1800s
+        archive_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-push %p
+      recovery_conf:
+        recovery_target_timeline: latest
+        restore_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-get %f "%p"
+
+  pg_hba:
+  {% for host in groups['database'] %}
+  - host replication replicator {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
+  - host all all {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
+  {% endfor %}
+
+  method: initdb
+  pgbackrest:
+    command: /usr/local/bin/bootstrap-pgbackrest
+    keep_existing_recovery_conf: False
+    recovery_conf:
+      recovery_target_action: promote
+      recovery_target_timeline: latest
+      restore_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-get %f "%p"
+
+  initdb:
+  - encoding: UTF8
+  - data-checksums
+
+postgresql:
+  listen: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
+  connect_address: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
+  data_dir: {{ item.value.path }}
+  bin_dir: /usr/lib/postgresql/{{ postgresql_version }}/bin
+  authentication:
+    replication:
+      username: {{ item.value.replication_username }}
+      password: {{ item.value.replication_pass }}
+
+  parameters:
+    log_destination: syslog
+    synchronous_commit: remote_write
+    #synchronous_commit: local
+    {% if groups['database']|length > 1 %}
+    synchronous_standby_names: ANY 1 ({{ groups['database']| join(', ') }})
+    {% else %}
+    synchronous_standby_names: ANY 0 ({{ groups['database']| join(', ') }})
+    {% endif %}
+
+  create_replica_methods:
+    - pgbackrest
+    - basebackup
+
+  pgbackrest:
+    command: /usr/bin/pgbackrest --stanza={{ item.key }} --delta restore
+    no_params: True
+    no_master: 1
+    keep_data: True
+  basebackup:
+    max-rate: '100M'
+
+watchdog:
+  mode: off
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false

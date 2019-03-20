@@ -1,0 +1,15 @@
+- name: Apt conf no install recommends
+  copy:
+    src: apt/99-no-recommends.conf
+    dest: /etc/apt/apt.conf.d/
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+
+- name: Install default packages
+  apt:
+    update_cache: yes
+    state: present
+    dpkg_options: 'force-confold,force-confdef'
+    name: "{{ default_package }}"

@@ -1,0 +1,12 @@
+pgbackrest_package: pgbackrest
+
+pgbackrest_compress: n
+pgbackrest_repo1_path: /var/lib/pgbackrest
+pgbackrest_repo1_retention_full: 2
+pgbackrest_repo1_retention_diff: 6
+pgbackrest_backup_standby: n
+pgbackrest_process_max: "{%- if ansible_processor_vcpus == 1 %}1{%- else %}{{ ansible_processor_vcpus // 2 }}{%- endif %}"
+pgbackrest_archive_async: y
+pgbackrest_spool_path: /var/spool/pgbackrest
+pgbackrest_archive_push_queue_max: 500M
+pgbackrest_compress_level_network: 3

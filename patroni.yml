@@ -1,0 +1,63 @@
+---
+
+- hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  gather_facts: true
+  roles:
+    - common
+    - elao.locales
+    - upgrade
+
+- hosts: database
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - postgresql
+    - etcd
+    - etcd-cluster
+    - patroni
+
+- hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - ssh-key-user
+    - ssh-hostkey
+
+- hosts: database
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - pgbackrest
+
+- hosts: backup
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - pgbackrest
+
+- hosts: frontal
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - pgbouncer
+    - confd

@@ -1,0 +1,38 @@
+[Unit]
+Description={{ item.key }} - Runners to orchestrate a high-availability PostgreSQL
+After=network.target
+ConditionPathExists=/etc/patroni/{{ item.key }}.conf
+
+[Service]
+Type=simple
+
+User=postgres
+Group=postgres
+
+# Read in configuration file if it exists, otherwise proceed
+EnvironmentFile=-/etc/patroni_env.conf
+
+WorkingDirectory=~
+
+# Pre-commands to start watchdog device
+# Uncomment if watchdog is part of your patroni setup
+#ExecStartPre=-/usr/bin/sudo /sbin/modprobe softdog
+#ExecStartPre=-/usr/bin/sudo /bin/chown postgres /dev/watchdog
+
+# Start the patroni process
+ExecStart=/usr/bin/patroni /etc/patroni/{{ item.key }}.conf
+
+# Send HUP to reload from patroni.conf
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# only kill the patroni process, not it's children, so it will gracefully stop postgres
+KillMode=process
+
+# Give a reasonable amount of time for the server to start up/shut down
+TimeoutSec=30
+
+# Do not restart the service if it crashes, we want to manually inspect database on failure
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

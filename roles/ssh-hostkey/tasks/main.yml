@@ -1,0 +1,5 @@
+---
+
+- name: Get hosts keys
+  command: "ssh-keyscan -H {{ ansible_default_ipv4.address }}"
+  register: keyscan

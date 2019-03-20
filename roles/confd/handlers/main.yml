@@ -1,0 +1,8 @@
+---
+
+- name: Restart confd
+  systemd:
+    name: confd
+    daemon-reload: yes
+    state: restarted
+    enabled: true

@@ -1,0 +1,2 @@
+patroni_prereqs: pipexec,python3-etcd
+patroni_package: patroni

@@ -1,0 +1,6 @@
+[{{ item.key }}]
+{% for host in groups['database'] %}
+pg{{ loop.index }}-port={{ item.value.port }}
+pg{{ loop.index }}-path={{ item.value.path }}
+pg{{ loop.index }}-host={{ hostvars[host].ansible_default_ipv4.address }}
+{% endfor %}

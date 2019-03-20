@@ -1,0 +1,65 @@
+---
+
+- name: Download confd
+  get_url:
+    url: "{{ confd_url }}"
+    checksum: "{{ confd_linux_amd64_checksum }}"
+    dest: /usr/local/bin/confd
+    owner: root
+    group: root
+    mode: 0755
+
+- name: create confd group
+  group:
+    name: '{{ confd_group }}'
+    state: present
+
+- name: create confd user
+  user:
+    name: '{{ confd_user }}'
+    group: '{{ confd_group }}'
+    state: present
+
+- name: Create needed directory
+  file:
+    path: "/etc/confd/{{ item }}"
+    state: directory
+    owner: '{{ confd_user }}'
+    group: '{{ confd_group }}'
+    mode: 0755
+  loop:
+    - conf.d
+    - templates
+
+- name: Create toml configuration
+  template:
+    src: pgbouncer.toml.j2
+    dest: "/etc/confd/conf.d/{{ item.key }}.toml"
+    owner: '{{ confd_group }}'
+    group: '{{ confd_group }}'
+    mode: 0644
+  notify: Restart confd
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Create tmpl configuration
+  template:
+    src: pgbouncer.tmpl.j2
+    dest: "/etc/confd/templates/{{ item.key }}.tmpl"
+    owner: '{{ confd_group }}'
+    group: '{{ confd_group }}'
+    mode: 0644
+    variable_start_string: '[['
+    variable_end_string: ']]'
+  notify: Restart confd
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Install confd.service systemd unit
+  template:
+    src: systemd.j2
+    dest: /etc/systemd/system/confd.service
+    owner: '{{ confd_group }}'
+    group: '{{ confd_group }}'
+    mode: 0644
+  notify: Restart confd

@@ -1,0 +1,9 @@
+---
+
+- name: Import locales tasks
+  import_tasks: locales.yml
+  when: elao_locales|length
+
+- name: Import locales_default tasks
+  import_tasks: locales_default.yml
+  when: elao_locales_default|length

@@ -1,0 +1,63 @@
+---
+
+- name: Install pgdg apt key
+  apt_key:
+    id: ACCC4CF8
+    url: http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc
+
+- name: Install pgdg repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+    update_cache: yes
+
+- name: Install prereqs and pgbouncer
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+    name: "{{ pgbouncer_package }}"
+
+- name: Ensure config directory exist
+  file:
+    path: /etc/pgbouncer
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0750
+
+- name: Delete standard init script
+  service:
+    name: pgbouncer
+    state: stopped
+    enabled: no
+
+- name: Create systemd init script
+  template:
+    src: systemd.j2
+    dest: "/etc/systemd/system/pgbouncer-{{ item.key }}.service"
+    owner: root
+    group: root
+    mode: 0644
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Create blank config if not already exist
+  template:
+    src: pgbouncer.j2
+    dest: /etc/pgbouncer/{{ item.key }}.ini
+    owner: postgres
+    group: postgres
+    mode: 0644
+    force: no
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Enable and start systemd pgbouncer scripts
+  systemd:
+    daemon_reload: yes
+    name: "pgbouncer-{{ item.key }}"
+    enabled: true
+    state: started
+  with_dict:
+    "{{ clusters_config }}"
+

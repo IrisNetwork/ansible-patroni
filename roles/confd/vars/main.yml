@@ -1,0 +1,10 @@
+confd_url: https://github.com/kelseyhightower/confd/releases/download/v{{ confd_version }}/confd-{{ confd_version }}-{{ confd_arch }}
+confd_version: 0.16.0
+confd_arch: linux-amd64
+confd_linux_amd64_checksum: sha256:255d2559f3824dd64df059bdc533fd6b697c070db603c76aaf8d1d5e6b0cc334
+confd_interval: 10
+confd_config:
+
+confd_user: postgres
+confd_group: "{{ confd_user }}"
+confd_home: "{{ /etc/confd/ }}"

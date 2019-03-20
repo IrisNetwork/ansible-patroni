@@ -1,0 +1,8 @@
+[{{ item.key }}]
+pg1-port={{ item.value.port }}
+pg1-path={{ item.value.path }}
+
+{% for host in groups['backup'] %}
+repo{{ loop.index }}-host={{ hostvars[host].ansible_default_ipv4.address }}
+repo{{ loop.index }}-host-user={{ item.value.user }}
+{% endfor %}

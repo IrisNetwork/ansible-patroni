@@ -1,0 +1,69 @@
+---
+
+- name: Install prereqs and patroni
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+    name: "{{ patroni_prereqs }},{{ patroni_package }}"
+
+- name: Ensure config directory exist
+  file:
+    path: /etc/patroni
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create patroni configuration
+  template:
+    src: patroni.j2
+    dest: "/etc/patroni/{{ item.key }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Create needed directory
+  file:
+    path: "{{ item.value.path }}"
+    state: directory
+    mode: 0700
+    owner: postgres
+    group: postgres
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Create bootstrap script
+  copy:
+    src: bootstrap-pgbackrest
+    dest: /usr/local/bin/bootstrap-pgbackrest
+    group: root
+    owner: root
+    mode: 0755
+
+- name: Disable and stop default systemd script
+  systemd:
+    name: patroni
+    enabled: false
+    state: stopped
+
+- name: Create systemd init script
+  template:
+    src: systemd.j2
+    dest: "/etc/systemd/system/patroni-{{ item.key }}.service"
+    owner: root
+    group: root
+    mode: 0644
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Enable and start systemd patroni scripts
+  systemd:
+    daemon_reload: yes
+    name: "patroni-{{ item.key }}"
+    enabled: true
+    state: started
+  with_dict:
+    "{{ clusters_config }}"

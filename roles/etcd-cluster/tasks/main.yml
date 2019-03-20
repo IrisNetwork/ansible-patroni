@@ -1,0 +1,47 @@
+---
+- name: create etcd group
+  become: yes
+  become_user: root
+  group:
+    name: '{{ etcd_group }}'
+    state: present
+
+- name: create etcd user
+  become: yes
+  become_user: root
+  user:
+    name: '{{ etcd_user }}'
+    group: '{{ etcd_group }}'
+    home: '{{ etcd_data_dir }}'
+    state: present
+
+- name: create dirs...
+  become: yes
+  become_user: root
+  file:
+    state: directory
+    path: '{{ item }}'
+    owner: '{{ etcd_user }}'
+    group: '{{ etcd_group }}'
+    mode: 0755
+  with_items:
+    - /etc/etcd
+    - '{{ etcd_cluster_pki_dir }}'
+
+- include_tasks: pki.yml
+  when: etcd_secure
+
+- name: install etcd.service configuration
+  become: yes
+  become_user: root
+  with_items:
+    - f: etcd.conf
+      d: /etc/etcd
+  template:
+    src: '{{ item.f }}.j2'
+    dest: '{{ item.d }}/{{ item.f }}'
+    owner: '{{ etcd_user }}'
+    group: '{{ etcd_group }}'
+    mode: 0644
+
+- include_tasks: '{{ etcd_init_system }}.yml'

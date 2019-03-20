@@ -1,0 +1,103 @@
+---
+
+- name: Install pgdg apt key
+  apt_key:
+    id: ACCC4CF8
+    url: http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc
+
+- name: Install pgdg repository
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+    update_cache: yes
+
+- name: Install prereqs and pgbackrest
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+    name: "{{ pgbackrest_package }}"
+
+- name: Ensure config directory exist
+  file:
+    path: /etc/pgbackrest/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Setup standard configuration
+  template:
+    src: pgbackrest.j2
+    dest: /etc/pgbackrest/pgbackrest.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create client configuration
+  template:
+    src: client.j2
+    dest: "/etc/pgbackrest/conf.d/{{ item.key }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_dict:
+    "{{ clusters_config }}"
+  when: "inventory_hostname in groups.database"
+
+- name: Create client configuration
+  template:
+    src: server.j2
+    dest: "/etc/pgbackrest/conf.d/{{ item.key }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_dict:
+    "{{ clusters_config }}"
+  when: "inventory_hostname in groups.backup"
+
+- name: Insert backup ssh key on databases server
+  authorized_key:
+    user: postgres
+    state: present
+    key: "{{ hostvars[item].sshkey['content'] | b64decode }}"
+  loop: "{{ groups['backup'] }}"
+  when: "inventory_hostname in groups.database"
+
+- name: Insert backup ssh key on backup server
+  authorized_key:
+    user: postgres
+    state: present
+    key: "{{ hostvars[item].sshkey['content'] | b64decode }}"
+  loop: "{{ groups['database'] }}"
+  when: "inventory_hostname in groups.backup"
+
+- name: Test presence in .ssh/known_hosts
+  command: "sudo -u postgres ssh-keygen -H -F {{ hostvars[item].ansible_default_ipv4.address }}"
+  loop: "{{ groups['all'] }}"
+  ignore_errors: yes
+  no_log: true
+  register: knownhosts
+
+- name: Populate .ssh/known_hosts for databases hosts
+  lineinfile:
+    create: yes
+    owner: postgres
+    group: postgres
+    mode: 0600
+    path: ~postgres/.ssh/known_hosts
+    line: "{{ hostvars[item].keyscan.stdout }}"
+    state: present
+  loop: "{{ groups['backup'] }}"
+  when: "inventory_hostname in groups.database and hostvars[item].keyscan.stdout.split(' ')[-1] not in knownhosts.results | join('|')"
+
+- name: Populate .ssh/known_hosts for backup hosts
+  lineinfile:
+    create: yes
+    owner: postgres
+    group: postgres
+    mode: 0600
+    path: ~postgres/.ssh/known_hosts
+    line: "{{ hostvars[item].keyscan.stdout }}"
+    state: present
+  loop: "{{ groups['database'] }}"
+  when: "inventory_hostname in groups.backup and hostvars[item].keyscan.stdout.split(' ')[-1] not in knownhosts.results | join('|')"
