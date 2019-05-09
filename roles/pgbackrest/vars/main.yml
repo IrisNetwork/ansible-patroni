@@ -1,4 +1,4 @@
-pgbackrest_package: pgbackrest
+pgbackrest_package: pgbackrest,jq
 
 pgbackrest_compress: n
 pgbackrest_repo1_path: /var/lib/pgbackrest

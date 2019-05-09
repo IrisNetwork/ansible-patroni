@@ -101,3 +101,20 @@
     state: present
   loop: "{{ groups['database'] }}"
   when: "inventory_hostname in groups.backup and hostvars[item].keyscan.stdout.split(' ')[-1] not in knownhosts.results | join('|')"
+
+- name: Add backup and monitoring script
+  get_url:
+    url: 'https://raw.githubusercontent.com/TiJof/pgbackrest-autobackup/master/BackupPg.sh'
+    dest: /usr/local/bin/pgbackrest-autobackup
+    mode: 0755
+    force: yes
+  when: "inventory_hostname in groups.backup"
+
+- name: Create the stanzas by creating first backup
+  command: "/usr/local/bin/pgbackrest-autobackup full {{ item.key }}"
+  args:
+    creates: "{{ pgbackrest_repo1_path }}/backup/{{ item.key }}"
+  when: "inventory_hostname in groups.backup"
+  with_dict:
+    "{{ clusters_config }}"
+
