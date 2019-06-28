@@ -60,4 +60,5 @@
   any_errors_fatal: true
   roles:
     - pgbouncer
+    - haproxy
     - confd

@@ -2,7 +2,7 @@
 prefix = "/service/{{ item.key }}"
 owner = "postgres"
 mode = "0644"
-src = "{{ item.key }}.tmpl"
+src = "pgbouncer.tmpl"
 dest = "/etc/pgbouncer/{{ item.key }}.ini"
 
 reload_cmd = "systemctl restart pgbouncer-{{ item.key }}.service"

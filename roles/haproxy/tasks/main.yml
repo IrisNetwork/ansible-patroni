@@ -1,0 +1,24 @@
+---
+
+- name: Install prereqs and haproxy
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
+    name: "{{ haproxy_package }}"
+
+- name: Ensure config directory exist
+  file:
+    path: /etc/haproxy
+    state: directory
+    owner: haproxy
+    group: haproxy
+    mode: 0777
+
+- name: Ensure config file exist
+  file:
+    path: /etc/haproxy/haproxy.cfg
+    state: file
+    owner: haproxy
+    group: haproxy
+    mode: 0666

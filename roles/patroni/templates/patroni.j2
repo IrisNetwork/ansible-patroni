@@ -28,7 +28,7 @@ bootstrap:
         restore_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-get %f "%p"
 
   pg_hba:
-  {% for host in groups['database'] %}
+  {% for host in groups['all'] %}
   - host replication replicator {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
   - host all all {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
   {% endfor %}

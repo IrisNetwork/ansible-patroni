@@ -2,7 +2,7 @@
 
 - name: Download confd
   get_url:
-    url: "{{ confd_url }}"
+    url: "{{ confd_url }}"
     checksum: "{{ confd_linux_amd64_checksum }}"
     dest: /usr/local/bin/confd
     owner: root
@@ -31,10 +31,10 @@
     - conf.d
     - templates
 
-- name: Create toml configuration
+- name: Create pgbouncer toml configuration
   template:
     src: pgbouncer.toml.j2
-    dest: "/etc/confd/conf.d/{{ item.key }}.toml"
+    dest: "/etc/confd/conf.d/pgbouncer.toml"
     owner: '{{ confd_group }}'
     group: '{{ confd_group }}'
     mode: 0644
@@ -42,10 +42,10 @@
   with_dict:
     "{{ clusters_config }}"
 
-- name: Create tmpl configuration
+- name: Create pgbouncer tmpl configuration
   template:
     src: pgbouncer.tmpl.j2
-    dest: "/etc/confd/templates/{{ item.key }}.tmpl"
+    dest: "/etc/confd/templates/pgbouncer.tmpl"
     owner: '{{ confd_group }}'
     group: '{{ confd_group }}'
     mode: 0644
@@ -54,6 +54,33 @@
   notify: Restart confd
   with_dict:
     "{{ clusters_config }}"
+
+- name: Create haproxy toml configuration
+  template:
+    src: haproxy.toml.j2
+    dest: "/etc/confd/conf.d/haproxy.toml"
+    owner: '{{ confd_group }}'
+    group: '{{ confd_group }}'
+    mode: 0644
+    variable_start_string: '[['
+    variable_end_string: ']]'
+  notify: Restart confd
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Create haproxy tmpl configuration
+  template:
+    src: haproxy.tmpl.j2
+    dest: "/etc/confd/templates/haproxy.tmpl"
+    owner: '{{ confd_group }}'
+    group: '{{ confd_group }}'
+    mode: 0644
+    variable_start_string: '[['
+    variable_end_string: ']]'
+  notify: Restart confd
+  with_dict:
+    "{{ clusters_config }}"
+
 
 - name: Install confd.service systemd unit
   template:
