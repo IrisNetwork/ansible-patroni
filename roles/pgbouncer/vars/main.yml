@@ -1,1 +1,1 @@
-pgbouncer_package: pgbouncer
+pgbouncer_package: pgbouncer,postgresql-client

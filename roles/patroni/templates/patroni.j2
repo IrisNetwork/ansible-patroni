@@ -32,6 +32,9 @@ bootstrap:
   - host replication replicator {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
   - host all all {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
   {% endfor %}
+  {% for host in groups['frontal'] %}
+  - host all all {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
+  {% endfor %}
 
   method: initdb
   pgbackrest:
@@ -64,6 +67,15 @@ postgresql:
     synchronous_standby_names: ANY 1 ({{ groups['database']| join(', ') }})
     {% else %}
     synchronous_standby_names: ANY 0 ({{ groups['database']| join(', ') }})
+    {% endif %}
+    {% if item.value.tuning is defined %}
+    # Here come the customs
+    {% if item.value.tuning %}
+    {% for key, value in item.value.tuning.items() %}
+    {{ key  }}: {{ value }}
+    {% endfor %}
+    {% endif %}
+    # And the end of the customs
     {% endif %}
 
   create_replica_methods:

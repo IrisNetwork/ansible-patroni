@@ -1,0 +1,54 @@
+---
+
+- name: Wait for db server to start
+  wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ item.value.port }}"
+    delay: 30
+    timeout: 300
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Create each pgbouncer postgresql user
+  postgresql_user:
+    name: "{{ item.value.pgbouncer_user | default('pgbouncer') }}"
+    password: "{{ item.value.pgbouncer_pass | default('pgbouncer') }}"
+    port: "{{ item.value.port }}"
+    login_host: "{{ ansible_host }}"
+    login_user: "postgres"
+  with_dict:
+    "{{ clusters_config }}"
+  failed_when: false
+
+- name: Create pgbouncer schema on template1
+  postgresql_schema:
+    db: template1
+    name: "pgbouncer"
+    owner: "{{ item.value.pgbouncer_user | default('pgbouncer') }}"
+    port: "{{ item.value.port }}"
+    login_host: "{{ ansible_host }}"
+    login_user: "postgres"
+  with_dict:
+    "{{ clusters_config }}"
+  failed_when: false
+
+- name: Create pgbouncer authentification function
+  postgresql_query:
+    db: template1
+    query: "CREATE OR REPLACE FUNCTION pgbouncer.get_auth (p_usename TEXT)
+RETURNS TABLE (username TEXT, password TEXT) AS
+$$
+BEGIN
+ RAISE WARNING 'PgBouncer auth request: %', p_usename;
+ RETURN QUERY
+ SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow WHERE usename = p_usename;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+REVOKE ALL ON FUNCTION pgbouncer.get_auth(p_usename TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION pgbouncer.get_auth(p_usename TEXT) TO {{ item.value.pgbouncer_user | default('pgbouncer') }};"
+    port: "{{ item.value.port }}"
+    login_host: "{{ ansible_host }}"
+    login_user: "postgres"
+  with_dict:
+    "{{ clusters_config }}"
+  failed_when: false

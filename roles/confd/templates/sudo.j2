@@ -1,0 +1,4 @@
+Cmnd_Alias RESTART{{ item.key | upper }} = /bin/systemctl restart pgbouncer-{{ item.key }}
+postgres ALL = NOPASSWD: /bin/systemctl
+postgres ALL = NOPASSWD: RESTART{{ item.key | upper }}
+Defaults!RESTART{{ item.key | upper }} !requiretty

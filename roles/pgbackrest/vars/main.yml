@@ -10,3 +10,4 @@ pgbackrest_archive_async: y
 pgbackrest_spool_path: /var/spool/pgbackrest
 pgbackrest_archive_push_queue_max: 500M
 pgbackrest_compress_level_network: 3
+pgbackrest_startfast: y

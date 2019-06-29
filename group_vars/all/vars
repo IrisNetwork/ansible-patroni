@@ -13,14 +13,30 @@ etcd_secure: false
 
 # configuration métier
 clusters_config:
-  pgpuppet01:
-    port: 5432
-    #pgbouncer_port: "{{ port + 1000 }}"
-    #patroni_port: "{{ port + 2000 }}"
-    path: "/app/pgpuppet01/postgresql2"
+  pgpuppet04:
+    port: 5434
+    tuning:
+      autovacuum_multixact_freeze_max_age: 400000000
+    # pgbouncer_port: "{{ port + 1000 }}"
+    # patroni_port: "{{ port + 2000 }}"
+    path: "/app/pgpuppet04"
     user: "postgres"
     replication_username: "replicator"
     replication_pass: "rep-pass"
+    # pgbouncer_user: "pgbouncer"
+    # pgbouncer_pass: "pgbouncer"
+    pgbouncer_user: "pgbouncer42"
+    pgbouncer_pass: "pgbouncer42"
+  client42:
+    port: 5436
+    #pgbouncer_port: "{{ port + 1000 }}"
+    #patroni_port: "{{ port + 2000 }}"
+    path: "/app/client42"
+    user: "postgres"
+    replication_username: "replicator"
+    replication_pass: "rep-pass"
+
+clusters_config_todelete:
   pgpuppet02:
     port: 5435
     #pgbouncer_port: "{{ port + 1000 }}"
@@ -29,7 +45,6 @@ clusters_config:
     user: "postgres"
     replication_username: "replicator"
     replication_pass: "rep-pass"
-
 confd_config: "{{ clusters_config }}"
 etcd_cluster_name: patroni-etcd
 

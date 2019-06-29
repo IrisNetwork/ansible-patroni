@@ -1,0 +1,5 @@
+{# {% for user in item.value.users %}
+{% if item['value']['users'][user]['password'] is defined %}"{{ user }}" "md5{{ ( item['value']['users'][user]['password'] + user ) | hash('md5') }}"{% endif %}
+{% endfor %}
+#}
+"{{ item.value.pgbouncer_user | default('pgbouncer') }}" "md5{{ ( item.value.pgbouncer_pass | default('pgbouncer') +  item.value.pgbouncer_user | default('pgbouncer') ) | hash('md5') }}" ""

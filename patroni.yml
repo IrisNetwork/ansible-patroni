@@ -10,7 +10,7 @@
   roles:
     - common
     - elao.locales
-    - upgrade
+#    - upgrade
 
 - hosts: database
   become: true
@@ -51,6 +51,16 @@
   any_errors_fatal: true
   roles:
     - pgbackrest
+
+- hosts: database
+  environment: "{{ proxy_env }}"
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - pgbouncer-client
 
 - hosts: frontal
   become: true

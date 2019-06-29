@@ -52,6 +52,26 @@
   with_dict:
     "{{ clusters_config }}"
 
+- name: Create userlist configuration
+  template:
+    src: userlist.j2
+    dest: /etc/pgbouncer/userlist_{{ item.key }}.txt
+    owner: postgres
+    group: postgres
+    mode: 0644
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Create pgbouncer pg_hba configuration
+  template:
+    src: pg_hba.j2
+    dest: /etc/pgbouncer/pg_hba_{{ item.key }}.conf
+    owner: postgres
+    group: postgres
+    mode: 0644
+  with_dict:
+    "{{ clusters_config }}"
+
 - name: Enable and start systemd pgbouncer scripts
   systemd:
     daemon_reload: yes

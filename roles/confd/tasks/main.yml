@@ -55,6 +55,16 @@
   with_dict:
     "{{ clusters_config }}"
 
+- name: Create sudo configuration
+  template:
+    src: sudo.j2
+    dest: "/etc/sudoers.d/{{ item.key }}"
+    owner: 'root'
+    group: 'root'
+    mode: 0600
+  with_dict:
+    "{{ clusters_config }}"
+
 - name: Install confd.service systemd unit
   template:
     src: systemd.j2

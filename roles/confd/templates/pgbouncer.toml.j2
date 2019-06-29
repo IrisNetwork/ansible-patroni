@@ -5,7 +5,7 @@ mode = "0644"
 src = "{{ item.key }}.tmpl"
 dest = "/etc/pgbouncer/{{ item.key }}.ini"
 
-reload_cmd = "systemctl restart pgbouncer-{{ item.key }}.service"
+reload_cmd = "sudo systemctl restart pgbouncer-{{ item.key }}.service"
 
 keys = [
   "/members/","/leader"

@@ -41,7 +41,7 @@ pidfile = /var/run/pgbouncer/pgbouncer-{{ item.key }}.pid
 ;;;
 
 ; IP address or * which means all IPs
-listen_addr = 127.0.0.1
+listen_addr = *
 listen_port = {{ item.value.port + 1000 }}
 
 ; Unix socket is also used for -R.
