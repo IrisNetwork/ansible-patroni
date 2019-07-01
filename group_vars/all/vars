@@ -17,6 +17,9 @@ clusters_config:
     port: 5434
     tuning:
       autovacuum_multixact_freeze_max_age: 400000000
+    hba_custom:
+      - '# chaine de connexion qui necessite un trust'
+      - 'host  all all 0.0.0.0/0 md5'
     # pgbouncer_port: "{{ port + 1000 }}"
     # patroni_port: "{{ port + 2000 }}"
     path: "/app/pgpuppet04"
@@ -45,6 +48,7 @@ clusters_config_todelete:
     user: "postgres"
     replication_username: "replicator"
     replication_pass: "rep-pass"
+
 confd_config: "{{ clusters_config }}"
 etcd_cluster_name: patroni-etcd
 
