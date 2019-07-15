@@ -71,3 +71,12 @@
   roles:
     - pgbouncer
     - confd
+
+- hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - { role: cleaner-patroni, when: needcleaning|bool }

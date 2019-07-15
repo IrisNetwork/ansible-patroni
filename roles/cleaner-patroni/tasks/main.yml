@@ -1,0 +1,136 @@
+---
+
+# Confd
+- name: Delete confd toml pgbouncer configuration
+  file:
+    path: "/etc/confd/conf.d/{{ item.key }}.toml"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  notify: Restart confd
+  when: "inventory_hostname in groups.frontal"
+
+- name: Delete confd tmpl pgbouncer configuration
+  file:
+    path: "/etc/confd/conf.d/{{ item.key }}.tmpl"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  notify: Restart confd
+  when: "inventory_hostname in groups.frontal"
+
+- name: Delete sudoers configuration
+  file:
+    path: "/etc/sudoers.d/{{ item.key }}"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.frontal"
+
+# pgbouncer
+- name: Stop systemd pgbouncer scripts
+  systemd:
+    daemon_reload: yes
+    name: "pgbouncer-{{ item.key }}"
+    enabled: false
+    state: stopped
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.frontal"
+  ignore_errors: true
+
+- name: Delete systemd init script
+  file:
+    path: "/etc/systemd/system/pgbouncer-{{ item.key }}.service"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.frontal"
+
+- name: delete pgbouncer config
+  file:
+    path: /etc/pgbouncer/{{ item.key }}.ini
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.frontal"
+
+- name: Delete pgbouncer userlist configuration
+  file:
+    path: /etc/pgbouncer/userlist_{{ item.key }}.txt
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.frontal"
+
+- name: Delete pgbouncer pg_hba configuration
+  file:
+    path: /etc/pgbouncer/pg_hba_{{ item.key }}.conf
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.frontal"
+
+# patroni
+- name: Stop systemd patroni scripts
+  systemd:
+    daemon_reload: yes
+    name: "patroni-{{ item.key }}"
+    enabled: false
+    state: stopped
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.database"
+  ignore_errors: true
+
+- name: Delete systemd init script
+  file:
+    path: "/etc/systemd/system/patroni-{{ item.key }}.service"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.database"
+
+- name: Delete postgresql data directory
+  file:
+    path: "{{ item.value.path }}"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.database"
+
+- name: Delete patroni configuration
+  file:
+    path: "/etc/patroni/{{ item.key }}.conf"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.database"
+
+# pgbackrest
+- name: Delete pgbackrest configuration
+  file:
+    path: "/etc/pgbackrest/conf.d/{{ item.key }}.conf"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.backup"
+
+- name: Clean backup directory (1/2)
+  file:
+    path: "/var/lib/pgbackrest/backup/{{ item.key }}"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.backup"
+
+- name: Clean backup directory (2/2)
+  file:
+    path: "/var/lib/pgbackrest/archive/{{ item.key }}"
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.backup"
+
+# etcd-cluster
+#clean directory web

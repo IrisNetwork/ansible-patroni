@@ -11,14 +11,27 @@ postgresql_version: 11
 # etcd
 etcd_secure: false
 
+
+confd_config: "{{ clusters_config }}"
+etcd_cluster_name: patroni-etcd
+
+ssh_user: postgres
+ssh_key_type: ed25519
+
 # configuration métier
 clusters_config:
   pgpuppet04:
     port: 5434
     tuning:
       autovacuum_multixact_freeze_max_age: 400000000
+      postgresql_max_connections: 500
+      postgresql_shared_buffers: "{% if ansible_memory_mb.real.total < 2048 %}{{ (ansible_memory_mb.real.total * 0.2) | int }}{% elif ansible_memory_mb.real.total < 32768 %}{{ (ansible_memory_mb.real.total * 0.25) | int }}{% else %}8192{% endif %}"
+      postgresql_effective_cache_size: "{{ (ansible_memory_mb.real.total // 2) }}MB"
+      postgresql_work_mem: "32MB"
+      postgresql_maintenance_work_mem: "{% if (ansible_memory_mb.real.total * 0.1) < 1024 %}{{ (ansible_memory_mb.real.total * 0.1) | int }}MB{% else %}1024MB{% endif %}"
+      postgresql_max_wal_senders: "{{ (2 * postgresql_synchronous_standby_names|length + 1) }}"
     hba_custom:
-      - '# chaine de connexion qui necessite un trust'
+      - '# chaine par defaut'
       - 'host  all all 0.0.0.0/0 md5'
     # pgbouncer_port: "{{ port + 1000 }}"
     # patroni_port: "{{ port + 2000 }}"
