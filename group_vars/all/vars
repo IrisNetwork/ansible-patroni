@@ -29,7 +29,6 @@ clusters_config:
       postgresql_effective_cache_size: "{{ (ansible_memory_mb.real.total // 2) }}MB"
       postgresql_work_mem: "32MB"
       postgresql_maintenance_work_mem: "{% if (ansible_memory_mb.real.total * 0.1) < 1024 %}{{ (ansible_memory_mb.real.total * 0.1) | int }}MB{% else %}1024MB{% endif %}"
-      postgresql_max_wal_senders: "{{ (2 * postgresql_synchronous_standby_names|length + 1) }}"
     hba_custom:
       - '# chaine par defaut'
       - 'host  all all 0.0.0.0/0 md5'
