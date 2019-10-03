@@ -13,7 +13,7 @@
 - name: Install debian postgresql utils
   apt:
     name: postgresql-common
-    state: present
+    state: latest
 
 - name: Disable auto creation of main cluster
   lineinfile:
@@ -24,4 +24,4 @@
 - name: Install postgresql
   apt:
     name: postgresql-{{ postgresql_version }}
-    state: present
+    state: latest

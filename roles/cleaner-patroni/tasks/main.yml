@@ -132,5 +132,12 @@
     "{{ clusters_config_todelete }}"
   when: "inventory_hostname in groups.backup"
 
-# etcd-cluster
-#clean directory web
+- name: Clean etcd database
+  etcd3:
+    host: localhost
+    key: /service/{{ item.key }}
+    state: absent
+  with_dict:
+    "{{ clusters_config_todelete }}"
+  when: "inventory_hostname in groups.etcd_master"
+  run_once: true

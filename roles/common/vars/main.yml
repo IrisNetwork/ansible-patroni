@@ -1,1 +1,1 @@
-default_package: ca-certificates,zsh,curl,ncurses-term,sudo,unzip,bzip2,xz-utils,fail2ban,rsync,apt-transport-https,aptitude,pigz,pbzip2,pxz,curl,locales,logrotate,ncdu
+default_package: ca-certificates,zsh,curl,ncurses-term,sudo,unzip,bzip2,xz-utils,fail2ban,rsync,apt-transport-https,aptitude,pigz,pbzip2,curl,locales,logrotate,ncdu

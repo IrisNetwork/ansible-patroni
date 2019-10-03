@@ -1,2 +1,2 @@
-patroni_prereqs: pipexec,python3-etcd,python-psycopg2
+patroni_prereqs: pipexec,python3-etcd,python-psycopg2,python3-distutils
 patroni_package: patroni

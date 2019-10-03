@@ -4,7 +4,7 @@
   apt:
     update_cache: yes
     cache_valid_time: 3600
-    state: present
+    state: latest
     name: "{{ patroni_prereqs }},{{ patroni_package }}"
 
 - name: Ensure config directory exist

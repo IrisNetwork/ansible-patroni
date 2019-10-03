@@ -7,7 +7,10 @@ pg23 ansible_host=172.25.105.104  ansible_user=if_ansible_deploy ansible_ssh_pri
 pg24 ansible_host=172.25.105.198  ansible_user=if_ansible_deploy ansible_ssh_private_key_file=~/.ssh/id_rsa_ansible
 
 [frontal]
-pg24 ansible_host=172.25.105.198  ansible_user=if_ansible_deploy ansible_ssh_private_key_file=~/.ssh/id_rsa_ansible
+#pg21
+#pg22
+#pg23
+pg24
 
 [etcd_master]
 pg2[1:3]

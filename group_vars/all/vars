@@ -24,12 +24,11 @@ clusters_config:
     port: 5434
     tuning:
       autovacuum_multixact_freeze_max_age: 400000000
-      postgresql_max_connections: 500
-      postgresql_shared_buffers: "{% if ansible_memory_mb.real.total < 2048 %}{{ (ansible_memory_mb.real.total * 0.2) | int }}{% elif ansible_memory_mb.real.total < 32768 %}{{ (ansible_memory_mb.real.total * 0.25) | int }}{% else %}8192{% endif %}"
-      postgresql_effective_cache_size: "{{ (ansible_memory_mb.real.total // 2) }}MB"
-      postgresql_work_mem: "32MB"
-      postgresql_maintenance_work_mem: "{% if (ansible_memory_mb.real.total * 0.1) < 1024 %}{{ (ansible_memory_mb.real.total * 0.1) | int }}MB{% else %}1024MB{% endif %}"
-      postgresql_max_wal_senders: "{{ (2 * postgresql_synchronous_standby_names|length + 1) }}"
+      max_connections: 500
+      shared_buffers: "{% if ansible_memory_mb.real.total < 2048 %}{{ (ansible_memory_mb.real.total * 0.2) | int }}{% elif ansible_memory_mb.real.total < 32768 %}{{ (ansible_memory_mb.real.total * 0.25) | int }}{% else %}8192{% endif %}"
+      effective_cache_size: "{{ (ansible_memory_mb.real.total // 2) }}MB"
+      work_mem: "32MB"
+      maintenance_work_mem: "{% if (ansible_memory_mb.real.total * 0.1) < 1024 %}{{ (ansible_memory_mb.real.total * 0.1) | int }}MB{% else %}1024MB{% endif %}"
     hba_custom:
       - '# chaine par defaut'
       - 'host  all all 0.0.0.0/0 md5'

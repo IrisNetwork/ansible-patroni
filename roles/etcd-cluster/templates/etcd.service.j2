@@ -9,7 +9,8 @@ WorkingDirectory={{etcd_data_dir}}/
 EnvironmentFile=-/etc/etcd/etcd.conf
 # set GOMAXPROCS to number of processors
 ExecStart=/bin/bash -c "GOMAXPROCS=$(nproc) {{etcd_install_dir}}/etcd"
-Restart=on-failure
+Restart=always
+RestartSec=2
 LimitNOFILE=65536
 
 [Install]

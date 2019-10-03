@@ -7,7 +7,9 @@ restapi:
   connect_address: {{ ansible_default_ipv4.address }}:{{ item.value.port + 2000 }}
 
 etcd:
-  host: {{ ansible_default_ipv4.address }}:2379
+  hosts: {% for host in groups['etcd_master'] %}{{ hostvars[host].ansible_default_ipv4.address }}:2379{% if not loop.last %},{% endif %}{% endfor %}
+
+
 bootstrap:
   dcs:
     synchronous_mode: true
@@ -72,7 +74,7 @@ postgresql:
     # Here come the customs
     {% if item.value.tuning %}
     {% for key, value in item.value.tuning.items() %}
-    {{ key  }}: {{ value }}
+    {{ key }}: {{ value }}
     {% endfor %}
     {% endif %}
     # And the end of the customs
