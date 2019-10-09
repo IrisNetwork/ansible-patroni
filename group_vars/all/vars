@@ -11,6 +11,9 @@ postgresql_version: 11
 # etcd
 etcd_secure: false
 
+# Do you want to clean ?
+## if yes, you can change this to true or --extra-vars "needcleaning=true"
+needcleaning: false
 
 confd_config: "{{ clusters_config }}"
 etcd_cluster_name: patroni-etcd
