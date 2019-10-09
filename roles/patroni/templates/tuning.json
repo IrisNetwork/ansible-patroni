@@ -1,0 +1,10 @@
+#jinja2: trim_blocks:True,lstrip_blocks:True
+{
+  "postgresql": {
+    "parameters": {
+{% for key, value in item.value.tuning.items() -%}
+      "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
+{% endfor -%}
+    }
+  }
+}

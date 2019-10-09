@@ -70,6 +70,7 @@ postgresql:
     {% else %}
     synchronous_standby_names: ANY 0 ({{ groups['database']| join(', ') }})
     {% endif %}
+{#
     {% if item.value.tuning is defined %}
     # Here come the customs
     {% if item.value.tuning %}
@@ -79,6 +80,7 @@ postgresql:
     {% endif %}
     # And the end of the customs
     {% endif %}
+#}
 
   create_replica_methods:
     - pgbackrest
