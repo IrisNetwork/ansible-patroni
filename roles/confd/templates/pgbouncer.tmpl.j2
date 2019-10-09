@@ -1,5 +1,5 @@
 [databases]
-{{with get "/leader"}}{{$leader := .Value}}{{$leadkey := printf "/members/%s" $leader}}{{with get $leadkey}}{{$data := json .Value}}{{$hostport := base (replace (index (split $data.conn_url "/") 2) "@" "/" -1)}}{{ $host := base (index (split $hostport ":") 0)}}{{ $port := base (index (split $hostport ":") 1)}}* = host={{ $host }} port={{ $port }} pool_size=10{{end}}{{end}}
+{{with get "/leader"}}{{$leader := .Value}}{{$leadkey := printf "/members/%s" $leader}}{{with get $leadkey}}{{$data := json .Value}}{{$hostport := base (replace (index (split $data.conn_url "/") 2) "@" "/" -1)}}{{ $host := base (index (split $hostport ":") 0)}}{{ $port := base (index (split $hostport ":") 1)}}* = host={{ $host }} port={{ $port }} pool_size=[[ confd_pool_size ]]{{end}}{{end}}
 
 [pgbouncer]
 logfile = /var/log/pgbouncer/pgbouncer-[[ item.key ]].log
@@ -20,6 +20,6 @@ auth_query = SELECT * FROM pgbouncer.get_auth($1)
 admin_users = pgbouncer
 stats_users = pgbouncer
 
-pool_mode = session
-default_pool_size = 20
-max_client_conn = 100
+pool_mode = [[ confd_pool_mode ]]
+default_pool_size = [[ confd_default_pool_size ]]
+max_client_conn = [[ pgbouncer_max_client_conn | default("20") ]]

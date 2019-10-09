@@ -45,6 +45,7 @@ clusters_config:
     # pgbouncer_pass: "pgbouncer"
     pgbouncer_user: "pgbouncer42"
     pgbouncer_pass: "pgbouncer42"
+    pgbouncer_max_client_conn: "100"
   client42:
     port: 5436
     #pgbouncer_port: "{{ port + 1000 }}"
@@ -63,9 +64,3 @@ clusters_config_todelete:
     user: "postgres"
     replication_username: "replicator"
     replication_pass: "rep-pass"
-
-confd_config: "{{ clusters_config }}"
-etcd_cluster_name: patroni-etcd
-
-ssh_user: postgres
-ssh_key_type: ed25519

@@ -8,3 +8,6 @@ confd_config:
 confd_user: postgres
 confd_group: "{{ confd_user }}"
 confd_home: "{{ /etc/confd/ }}"
+confd_default_pool_size: "20"
+confd_pool_size: "10"
+confd_pool_mode: "session"
