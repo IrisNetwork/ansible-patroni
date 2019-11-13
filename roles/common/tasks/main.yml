@@ -13,3 +13,11 @@
     state: present
     dpkg_options: 'force-confold,force-confdef'
     name: "{{ default_package }}"
+
+- name: Update motd
+  copy:
+    src: motd
+    dest: /etc/update-motd.d/99-ansible
+    mode: 0755
+    owner: root
+    group: root

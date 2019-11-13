@@ -3,7 +3,7 @@
   "postgresql": {
     "parameters": {
 {% for key, value in item.value.tuning.items() -%}
-      "{{ key }}": "{{ value }}"{% if not loop.last %},{% endif %}
+      "{{ key }}": "{{ value|replace("/","\/") }}"{% if not loop.last %},{% endif %}
 {% endfor -%}
     }
   }

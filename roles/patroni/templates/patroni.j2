@@ -9,29 +9,43 @@ restapi:
 etcd:
   hosts: {% for host in groups['etcd_master'] %}{{ hostvars[host].ansible_default_ipv4.address }}:2379{% if not loop.last %},{% endif %}{% endfor %}
 
+log:
+  level: {{ patroni_log_level }}
+  dir: {{ patroni_log_dir }}
+  file_size: {{ patroni_log_file_size }}
+  file_num: {{ patroni_log_file_num }}
+  format: '{{ patroni_log_format }}'
+  dateformat: '{{ patroni_log_dateformat }}'
+  {% if patroni_log_loggers is defined %}
+  loggers:
+    {{ patroni_log_loggers | indent( width=4, indentfirst=false) }}{% endif %}
 
 bootstrap:
   dcs:
-    synchronous_mode: true
-    synchronous_mode_strict: false
-    ttl: 30
-    loop_wait: 10
-    retry_timeout: 10
-    maximum_lag_on_failover: 1048576
+    synchronous_mode: {{ patroni_bootstrap_dcs_synchronous_mode }}
+    synchronous_mode_strict: {{ patroni_bootstrap_dcs_synchronous_mode_strict }}
+    ttl: {{ patroni_bootstrap_dcs_ttl }}
+    loop_wait: {{ patroni_bootstrap_dcs_loop_wait }}
+    retry_timeout: {{ patroni_bootstrap_dcs_retry_timeout }}
+    maximum_lag_on_failover: {{ patroni_bootstrap_dcs_maximum_lag_on_failover }}
+    check_timeline: {{ patroni_bootstrap_dcs_check_timeline }}
     postgresql:
-      use_pg_rewind: false
-      use_slots: true
+      use_pg_rewind: {{ patroni_force_cluster_resync_on_failure }}
+      logging_collector: on
+      log_destination: stderr
+      use_slots: {{ patroni_bootstrap_dcs_postgresql_use_slots }}
       parameters:
-        archive_mode: "on"
-        archive_timeout: 1800s
-        archive_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-push %p
+        log_directory: {{ postgresql_log_dir }}
+        archive_mode: "{{ patroni_bootstrap_dcs_postgresql_parameters_archive_mode }}"
+        archive_timeout: {{ patroni_bootstrap_dcs_postgresql_parameters_archive_timeout }}
+        archive_command: {{ patroni_bootstrap_dcs_postgresql_parameters_archive_command }}
       recovery_conf:
-        recovery_target_timeline: latest
-        restore_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-get %f "%p"
+        recovery_target_timeline: {{ patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_target_timeline }}
+        restore_command: {{ patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_restore_command }}
 
   pg_hba:
   {% for host in groups['database'] %}
-  - host replication replicator {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
+  - host replication {{ item.value.replication_username | default('replicator') }} {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
   - host all all {{ hostvars[host].ansible_default_ipv4.address }}/32 trust
   {% endfor %}
   {% for host in groups['frontal'] %}
@@ -55,14 +69,17 @@ postgresql:
   listen: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
   connect_address: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
   data_dir: {{ item.value.path }}
-  bin_dir: /usr/lib/postgresql/{{ postgresql_version }}/bin
+  bin_dir: /usr/lib/postgresql/{{ item.value.version | default(postgresql_version) }}/bin
+  use_pg_rewind: {{ patroni_force_cluster_resync_on_failure }}
+  remove_data_directory_on_diverged_timelines: {{ patroni_force_cluster_resync_on_failure }}
+  logging_collector: on
+  log_destination: stderr
   authentication:
     replication:
-      username: {{ item.value.replication_username }}
-      password: {{ item.value.replication_pass }}
+      username: {{ item.value.replication_username | default('replicator') }}
 
   parameters:
-    log_destination: syslog
+    log_directory: {{ postgresql_log_dir }}
     synchronous_commit: remote_write
     #synchronous_commit: local
     {% if groups['database']|length > 1 %}
@@ -70,17 +87,6 @@ postgresql:
     {% else %}
     synchronous_standby_names: ANY 0 ({{ groups['database']| join(', ') }})
     {% endif %}
-{#
-    {% if item.value.tuning is defined %}
-    # Here come the customs
-    {% if item.value.tuning %}
-    {% for key, value in item.value.tuning.items() %}
-    {{ key }}: {{ value }}
-    {% endfor %}
-    {% endif %}
-    # And the end of the customs
-    {% endif %}
-#}
 
   create_replica_methods:
     - pgbackrest
@@ -88,9 +94,9 @@ postgresql:
 
   pgbackrest:
     command: /usr/bin/pgbackrest --stanza={{ item.key }} --delta restore
-    no_params: True
+    no_params: true
     no_master: 1
-    keep_data: True
+    keep_data: true
   basebackup:
     max-rate: '100M'
 

@@ -52,3 +52,49 @@ GRANT EXECUTE ON FUNCTION pgbouncer.get_auth(p_usename TEXT) TO {{ item.value.pg
   with_dict:
     "{{ clusters_config }}"
   failed_when: false
+
+- name: Create pgbouncer schema on postgres
+  postgresql_schema:
+    db: postgres
+    name: "pgbouncer"
+    owner: "{{ item.value.pgbouncer_user | default('pgbouncer') }}"
+    port: "{{ item.value.port }}"
+    login_host: "{{ ansible_host }}"
+    login_user: "postgres"
+  with_dict:
+    "{{ clusters_config }}"
+  failed_when: false
+
+- name: Create pgbouncer authentification function on postgres database
+  postgresql_query:
+    db: postgres
+    query: "CREATE OR REPLACE FUNCTION pgbouncer.get_auth (p_usename TEXT)
+RETURNS TABLE (username TEXT, password TEXT) AS
+$$
+BEGIN
+ RAISE WARNING 'PgBouncer auth request: %', p_usename;
+ RETURN QUERY
+ SELECT usename::TEXT, passwd::TEXT FROM pg_catalog.pg_shadow WHERE usename = p_usename;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+REVOKE ALL ON FUNCTION pgbouncer.get_auth(p_usename TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION pgbouncer.get_auth(p_usename TEXT) TO {{ item.value.pgbouncer_user | default('pgbouncer') }};"
+    port: "{{ item.value.port }}"
+    login_host: "{{ ansible_host }}"
+    login_user: "postgres"
+  with_dict:
+    "{{ clusters_config }}"
+  failed_when: false
+
+- name: Create admin user
+  postgresql_user:
+    db: postgres
+    name: "{{ item.key }}"
+    password: "{{ item.value.admin_password }}"
+    port: "{{ item.value.port }}"
+    login_host: "{{ ansible_host }}"
+    login_user: "postgres"
+    role_attr_flags: NOSUPERUSER,CREATEROLE,CREATEDB,NOINHERIT,LOGIN,NOREPLICATION,NOBYPASSRLS
+  with_dict:
+    "{{ clusters_config }}"
+  failed_when: false

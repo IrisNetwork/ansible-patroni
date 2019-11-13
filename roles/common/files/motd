@@ -1,0 +1,46 @@
+#!/bin/sh
+cat << 'EOF'
+m     m                        "                 
+#  #  #  mmm    m mm  m mm   mmm    m mm    mmmm 
+" #"# # "   #   #"  " #"  #    #    #"  #  #" "# 
+ ## ##" m"""#   #     #   #    #    #   #  #   # 
+ #   #  "mm"#   #     #   #  mm#mm  #   #  "#m"# 
+                                            m  # 
+                                             ""  
+This server is fully managed by Ansible.
+You don't want to edit any file, really.
+
+You have to use vars in Ansible's playbook
+  not by hands (nor foots).
+
+Any modification made by hands will possibly
+  desactivated without further notice.
+
+                 uuuuuuu
+             uu$$$$$$$$$$$uu
+          uu$$$$$$$$$$$$$$$$$uu
+         u$$$$$$$$$$$$$$$$$$$$$u
+        u$$$$$$$$$$$$$$$$$$$$$$$u
+       u$$$$$$$$$$$$$$$$$$$$$$$$$u
+       u$$$$$$$$$$$$$$$$$$$$$$$$$u
+       u$$$$$$"   "$$$"   "$$$$$$u
+       "$$$$"      u$u       $$$$"
+        $$$u       u$u       u$$$
+        $$$u      u$$$u      u$$$
+         "$$$$uu$$$   $$$uu$$$$"
+          "$$$$$$$"   "$$$$$$$"
+            u$$$$$$$u$$$$$$$u
+             u$"$"$"$"$"$"$u
+  uuu        $$u$ $ $ $ $u$$       uuu
+ u$$$$        $$$$$u$u$u$$$       u$$$$
+  $$$$$uu      "$$$$$$$$$"     uu$$$$$$
+u$$$$$$$$$$$uu    """""    uuuu$$$$$$$$$$
+$$$$"""$$$$$$$$$$uuu   uu$$$$$$$$$"""$$$"
+ """      ""$$$$$$$$$$$uu ""$"""
+           uuuu ""$$$$$$$$$$uuu
+  u$$$uuu$$$$$$$$$uu ""$$$$$$$$$$$uuu$$$
+  $$$$$$$$$$""""           ""$$$$$$$$$$$"
+   "$$$$$"                      ""$$$$""
+     $$$"                         $$$$"
+
+EOF

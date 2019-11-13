@@ -21,7 +21,9 @@
     regexp: 'create_main_cluster =.*'
     line: 'create_main_cluster = false'
 
-- name: Install postgresql
+- name: Install postgresql version
   apt:
-    name: postgresql-{{ postgresql_version }}
+    name: postgresql-{{ item.value.version | default(postgresql_version) }}
     state: latest
+  with_dict:
+    "{{ clusters_config }}"

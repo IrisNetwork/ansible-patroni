@@ -1,2 +1,31 @@
 patroni_prereqs: pipexec,python3-etcd,python-psycopg2,python3-distutils
 patroni_package: patroni
+
+patroni_force_cluster_resync_on_failure: "true"
+
+postgresql_log_dir: "/var/log/postgresql/{{ item.key }}"
+
+patroni_log_level: "INFO"
+patroni_log_dir: "/var/log/patroni/{{ item.key }}"
+patroni_log_file_size: "50000000"
+patroni_log_file_num: "10"
+patroni_log_format: "%(asctime)s %(levelname)s: %(message)s"
+patroni_log_dateformat: "%Y-%m-%d %H:%M:%S"
+patroni_log_loggers: |
+#  etcd.client: DEBUG
+#  urllib3: DEBUG
+#  patroni.postmaster: WARNING
+
+patroni_bootstrap_dcs_synchronous_mode: "true"
+patroni_bootstrap_dcs_synchronous_mode_strict: "false"
+patroni_bootstrap_dcs_ttl: "30"
+patroni_bootstrap_dcs_loop_wait: "10"
+patroni_bootstrap_dcs_retry_timeout: "10"
+patroni_bootstrap_dcs_maximum_lag_on_failover: "1048576"
+patroni_bootstrap_dcs_check_timeline: "true"
+patroni_bootstrap_dcs_postgresql_use_slots: "true"
+patroni_bootstrap_dcs_postgresql_parameters_archive_mode: "on"
+patroni_bootstrap_dcs_postgresql_parameters_archive_timeout: "1800s"
+patroni_bootstrap_dcs_postgresql_parameters_archive_command: "/usr/bin/pgbackrest --stanza={{ item.key }} archive-push %p"
+patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_target_timeline: "latest"
+patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_restore_command: '/usr/bin/pgbackrest --stanza={{ item.key }} archive-get %f "%p"'

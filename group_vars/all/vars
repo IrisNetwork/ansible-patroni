@@ -6,7 +6,7 @@ elao_locales:
   - en_US.UTF-8
 
 # postgresql
-postgresql_version: 11
+postgresql_version: 12
 
 # etcd
 etcd_secure: false
@@ -32,6 +32,18 @@ clusters_config:
       effective_cache_size: "{{ (ansible_memory_mb.real.total // 2) }}MB"
       work_mem: "32MB"
       maintenance_work_mem: "{% if (ansible_memory_mb.real.total * 0.1) < 1024 %}{{ (ansible_memory_mb.real.total * 0.1) | int }}MB{% else %}1024MB{% endif %}"
+      logging_collector: "on"
+      log_rotation_age: "1440"
+      log_rotation_size: "0"
+      log_min_duration_statement: "380"
+      log_line_prefix: "user=%u,db=%d,app=%a,client=%h "
+      log_checkpoints: "on"
+      log_connections: "on"
+      log_disconnections: "on"
+      log_lock_waits: "on"
+      log_temp_files: "0"
+      log_autovacuum_min_duration: "380"
+      log_error_verbosity: "default"
     hba_custom:
       - '# chaine par defaut'
       - 'host  all all 0.0.0.0/0 md5'
@@ -40,20 +52,23 @@ clusters_config:
     path: "/app/pgpuppet04"
     user: "postgres"
     replication_username: "replicator"
-    replication_pass: "rep-pass"
-    # pgbouncer_user: "pgbouncer"
-    # pgbouncer_pass: "pgbouncer"
     pgbouncer_user: "pgbouncer42"
     pgbouncer_pass: "pgbouncer42"
+    admin_password: "ldnflkerenrkleahrmr"
     pgbouncer_max_client_conn: "100"
   client42:
     port: 5436
-    #pgbouncer_port: "{{ port + 1000 }}"
-    #patroni_port: "{{ port + 2000 }}"
+    version: 11
     path: "/app/client42"
     user: "postgres"
-    replication_username: "replicator"
-    replication_pass: "rep-pass"
+    admin_password: "ldnflkerenrkleahrmr"
+    # pgbouncer_port: "{{ port + 1000 }}"
+    # patroni_port: "{{ port + 2000 }}"
+    # pgbouncer_user: "pgbouncer"
+    # pgbouncer_pass: "pgbouncer"
+    # pgbouncer_max_client_conn: "20"
+    # replication_username: "replicator"
+    # patroni_port: "{{ port + 2000 }}"
 
 clusters_config_todelete:
   pgpuppet02:
@@ -63,4 +78,3 @@ clusters_config_todelete:
     path: "/app/pgpuppet02/postgresql2"
     user: "postgres"
     replication_username: "replicator"
-    replication_pass: "rep-pass"

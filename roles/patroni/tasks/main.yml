@@ -15,6 +15,26 @@
     group: root
     mode: 0755
 
+- name: Ensure patroni log directory exist
+  file:
+    path: "{{ patroni_log_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0755
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Ensure postgresql log directory exist, if necessary
+  file:
+    path: "{{ postgresql_log_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0755
+  with_dict:
+    "{{ clusters_config }}"
+
 - name: Create patroni configuration
   template:
     src: patroni.j2
