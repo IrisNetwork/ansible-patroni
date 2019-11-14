@@ -1,6 +1,6 @@
 [{{ item.key }}]
 pg1-port={{ item.value.port }}
-pg1-path={{ item.value.path }}
+pg1-path={{ item.value.path }}/postgresql
 
 {% for host in groups['backup'] %}
 repo{{ loop.index }}-host={{ hostvars[host].ansible_default_ipv4.address }}

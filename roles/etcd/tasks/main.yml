@@ -14,7 +14,7 @@
         checksum: '{{etcd_checksum}}'
         timeout: '{{etcd_download_timeout_seconds}}'
         mode: 0644
-    - name: unachive etcd
+    - name: unarchive etcd
       unarchive:
         remote_src: yes
         src: /tmp/{{etcd_archive}}

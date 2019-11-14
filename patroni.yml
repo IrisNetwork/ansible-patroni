@@ -19,6 +19,7 @@
   become_flags: '-E -H'
   any_errors_fatal: true
   roles:
+    - lvm
     - postgresql
     - etcd
     - etcd-cluster

@@ -1,0 +1,32 @@
+---
+
+- name: Ensure lv exist
+  lvol:
+    active: yes
+    force: no
+    vg: "{{ lvm_name_vg }}"
+    lv: "{{ lvm_name_lv_prefix }}{{ item.key }}"
+    resizefs: yes
+    size: "{{ item.value.size | default(lvm_default_size) }}"
+    state: present
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Ensure filesystem exist
+  filesystem:
+    dev: "/dev/{{ lvm_name_vg }}/{{ lvm_name_lv_prefix }}{{ item.key }}"
+    force: no
+    fstype: "{{ lvm_fstype }}"
+    resizefs: yes
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Ensure directory is mounted
+  mount:
+    boot: yes
+    fstype: "{{ lvm_fstype }}"
+    path: "{{ item.value.path }}"
+    src: "/dev/{{ lvm_name_vg }}/{{ lvm_name_lv_prefix }}{{ item.key }}"
+    state: mounted
+  with_dict:
+    "{{ clusters_config }}"

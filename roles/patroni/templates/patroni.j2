@@ -68,7 +68,7 @@ bootstrap:
 postgresql:
   listen: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
   connect_address: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
-  data_dir: {{ item.value.path }}
+  data_dir: {{ item.value.path }}/postgresql
   bin_dir: /usr/lib/postgresql/{{ item.value.version | default(postgresql_version) }}/bin
   use_pg_rewind: {{ patroni_force_cluster_resync_on_failure }}
   remove_data_directory_on_diverged_timelines: {{ patroni_force_cluster_resync_on_failure }}

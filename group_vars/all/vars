@@ -1,3 +1,10 @@
+# lvm
+lvm_name_vg: "vg_root"
+lvm_name_lv_prefix: "lv_clients_"
+#lvm_default_size: "512M"
+lvm_default_size: "2G"
+lvm_fstype: "ext4"
+
 # locales
 elao_locales_default: en_US.UTF-8
 
@@ -50,6 +57,7 @@ clusters_config:
     # pgbouncer_port: "{{ port + 1000 }}"
     # patroni_port: "{{ port + 2000 }}"
     path: "/app/pgpuppet04"
+    size: "5G"
     user: "postgres"
     replication_username: "replicator"
     pgbouncer_user: "pgbouncer42"
