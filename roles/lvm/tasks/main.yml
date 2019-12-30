@@ -25,8 +25,8 @@
   mount:
     boot: yes
     fstype: "{{ lvm_fstype }}"
-    path: "{{ item.value.path }}"
     src: "/dev/{{ lvm_name_vg }}/{{ lvm_name_lv_prefix }}{{ item.key }}"
+    path: "{{ item.value.path }}"
     state: mounted
   with_dict:
     "{{ clusters_config }}"

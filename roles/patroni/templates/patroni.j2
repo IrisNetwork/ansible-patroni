@@ -30,7 +30,7 @@ bootstrap:
     maximum_lag_on_failover: {{ patroni_bootstrap_dcs_maximum_lag_on_failover }}
     check_timeline: {{ patroni_bootstrap_dcs_check_timeline }}
     postgresql:
-      use_pg_rewind: {{ patroni_force_cluster_resync_on_failure }}
+      use_pg_rewind: {{ patroni_use_pg_rewind }}
       logging_collector: on
       log_destination: stderr
       use_slots: {{ patroni_bootstrap_dcs_postgresql_use_slots }}
@@ -38,10 +38,10 @@ bootstrap:
         log_directory: {{ postgresql_log_dir }}
         archive_mode: "{{ patroni_bootstrap_dcs_postgresql_parameters_archive_mode }}"
         archive_timeout: {{ patroni_bootstrap_dcs_postgresql_parameters_archive_timeout }}
-        archive_command: {{ patroni_bootstrap_dcs_postgresql_parameters_archive_command }}
+        archive_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-push %p
       recovery_conf:
         recovery_target_timeline: {{ patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_target_timeline }}
-        restore_command: {{ patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_restore_command }}
+        restore_command: /usr/bin/pgbackrest --stanza={{ item.key }} archive-get %f "%p"
 
   pg_hba:
   {% for host in groups['database'] %}
@@ -68,10 +68,10 @@ bootstrap:
 postgresql:
   listen: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
   connect_address: {{ ansible_default_ipv4.address }}:{{ item.value.port }}
-  data_dir: {{ item.value.path }}/postgresql
+  data_dir: {{ item.value.path }}/{{ item.value.version | default(postgresql_version) }}/postgresql
   bin_dir: /usr/lib/postgresql/{{ item.value.version | default(postgresql_version) }}/bin
-  use_pg_rewind: {{ patroni_force_cluster_resync_on_failure }}
-  remove_data_directory_on_diverged_timelines: {{ patroni_force_cluster_resync_on_failure }}
+  use_pg_rewind: {{ patroni_use_pg_rewind }}
+  remove_data_directory_on_diverged_timelines: {{ patroni_remove_data_directory_on_diverged_timelines }}
   logging_collector: on
   log_destination: stderr
   authentication:

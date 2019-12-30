@@ -1,0 +1,26 @@
+---
+
+- name: Get cluster's OldVersion
+  shell:
+    /usr/lib/postgresql/{{ item.value.version | default(postgresql_version) }}/bin/pg_controldata -D {{ item.value.path }}/*/postgresql | /usr/bin/grep "pg_control version number" | /usr/bin/grep -oP "[0-9][0-9][0-9][0-9]"
+  become_user: "{{ item.value.user }}"
+  register: pg_currentversion
+  run_once: true
+  with_dict:
+    "{{ clusters_config }}"
+  when: "inventory_hostname in groups.database"
+
+- name: Get the primary Postgresql
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{ item.value.port + 2000 }}/master"
+  register: current_primary
+  # Patroni return 503 when on secondary
+  ignore_errors: true
+  with_dict:
+    "{{ clusters_config }}"
+  when: "inventory_hostname in groups.database"
+
+- include_tasks: do_upgrade_primary.yml
+  when: item.item.value.version | default(postgresql_version) | int > item.stdout | regex_search('(^[0-9][0-9])') | int
+  with_items:
+    "{{ pg_currentversion.results }}"

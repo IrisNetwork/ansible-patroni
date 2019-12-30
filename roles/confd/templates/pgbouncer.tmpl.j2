@@ -23,3 +23,10 @@ stats_users = pgbouncer
 pool_mode = [[ confd_pool_mode ]]
 default_pool_size = [[ confd_default_pool_size ]]
 max_client_conn = [[ pgbouncer_max_client_conn | default("20") ]]
+{% if item.value.pgbouncer_use_tls | default(pgbouncer_use_tls) %}
+
+client_tls_sslmode = [[ item.value.pgbouncer_client_tls_sslmode | default(pgbouncer_client_tls_sslmode) ]]
+client_tls_key_file = /etc/pgbouncer/[[ item.key ]].key
+client_tls_cert_file = /etc/pgbouncer/[[ item.key ]].crt
+client_tls_ciphers = [[ item.value.pgbouncer_client_tls_ciphers | default(pgbouncer_client_tls_ciphers) ]]
+{% endif %}

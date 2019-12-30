@@ -11,27 +11,6 @@
     - common
     - elao.locales
 #    - upgrade
-
-- hosts: database
-  become: true
-  become_user: root
-  become_method: sudo
-  become_flags: '-E -H'
-  any_errors_fatal: true
-  roles:
-    - lvm
-    - postgresql
-    - etcd
-    - etcd-cluster
-    - patroni
-
-- hosts: all
-  become: true
-  become_user: root
-  become_method: sudo
-  become_flags: '-E -H'
-  any_errors_fatal: true
-  roles:
     - ssh-key-user
     - ssh-hostkey
 
@@ -42,6 +21,28 @@
   become_flags: '-E -H'
   any_errors_fatal: true
   roles:
+    - { role: lvm, when: use_lvm|bool }
+    - postgresql
+    - etcd
+    - etcd-cluster
+
+- hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - { role: upgrade_pg, when: do_upgrade|bool }
+
+- hosts: database
+  become: true
+  become_user: root
+  become_method: sudo
+  become_flags: '-E -H'
+  any_errors_fatal: true
+  roles:
+    - patroni
     - pgbackrest
 
 - hosts: backup

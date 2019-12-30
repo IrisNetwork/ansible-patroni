@@ -47,7 +47,7 @@
 
 - name: Create needed directory
   file:
-    path: "{{ item.value.path }}/postgresql"
+    path: "{{ item.value.path }}/{{ item.value.version | default(postgresql_version) }}/postgresql"
     state: directory
     mode: 0700
     owner: postgres
@@ -79,32 +79,17 @@
   with_dict:
     "{{ clusters_config }}"
 
-- name: Enable and start systemd patroni scripts
+- include_tasks: started_cluster.yml
+  when: item.value.state | default("started") != "stopped"
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Disable and stop patroni fot stopped cluster
   systemd:
     daemon_reload: yes
     name: "patroni-{{ item.key }}"
-    enabled: true
-    state: started
+    enabled: false
+    state: stopped
   with_dict:
     "{{ clusters_config }}"
-
-- name: Wait for patroni server to start
-  wait_for:
-    host: "{{ ansible_host }}"
-    port: "{{ item.value.port + 2000 }}"
-    delay: 10
-    timeout: 300
-  with_dict:
-    "{{ clusters_config }}"
-
-- name: Apply tuning
-  uri:
-    url: "http://{{ ansible_default_ipv4.address }}:{{ item.value.port + 2000 }}/config"
-    body: "{{ lookup('template','tuning.json') }}"
-    body_format: json
-    method: "PATCH"
-    return_content: yes
-  when: item.value.tuning is defined and item.value.tuning
-  with_dict:
-    "{{ clusters_config }}"
-  run_once: true
+  when: item.value.state | default("started") == "stopped"

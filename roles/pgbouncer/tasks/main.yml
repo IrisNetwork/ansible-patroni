@@ -10,12 +10,19 @@
     repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
     update_cache: yes
 
-- name: Install prereqs and pgbouncer
+- name: Install pgbouncer
   apt:
     update_cache: yes
     cache_valid_time: 3600
     state: latest
     name: "{{ pgbouncer_package }}"
+
+- name: Install all necessary psql-client
+  apt:
+    name: postgresql-client-{{ item.value.version | default(postgresql_version) }}
+    state: latest
+  with_dict:
+    "{{ clusters_config }}"
 
 - name: Ensure config directory exist
   file:
@@ -49,6 +56,77 @@
     group: postgres
     mode: 0644
     force: no
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Install certificate dependances if necessary
+  apt:
+    package: "{{ pgbouncer_ssl_packages }}"
+  when: item.value.pgbouncer_use_tls | default(pgbouncer_use_tls) and item.value.pgbouncer_tls_cert is not defined and item.value.pgbouncer_tls_key is not defined
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Generate key if not provided
+  openssl_privatekey:
+    path: "/etc/pgbouncer/{{ item.key }}.key"
+    type: RSA
+    size: "{{ item.value.pgbouncer_ssl_size | default(pgbouncer_ssl_size) }}"
+    mode: 0600
+    owner: postgres
+    group: postgres
+    force: no
+    state: present
+  when: item.value.pgbouncer_use_tls | default(pgbouncer_use_tls) and item.value.pgbouncer_tls_cert is not defined and item.value.pgbouncer_tls_key is not defined
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Add tls key if specified
+  copy:
+    content: "{{ item.value.pgbouncer_tls_key }}"
+    dest: "/etc/pgbouncer/{{ item.key }}.key"
+    mode: 0600
+    owner: postgres
+    group: postgres
+  when: item.value.pgbouncer_use_tls | default(pgbouncer_use_tls) and item.value.pgbouncer_tls_key is defined
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Generate certificate signing request
+  openssl_csr:
+    path: "/etc/pgbouncer/{{ item.key }}.csr"
+    privatekey_path: "/etc/pgbouncer/{{ item.key }}.key"
+    mode: 0600
+    owner: postgres
+    group: postgres
+    force: no
+    state: present
+  when: item.value.pgbouncer_use_tls | default(pgbouncer_use_tls) and item.value.pgbouncer_tls_cert is not defined and item.value.pgbouncer_tls_key is not defined
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Generate certificate if not provided
+  openssl_certificate:
+    path: "/etc/pgbouncer/{{ item.key }}.crt"
+    privatekey_path: "/etc/pgbouncer/{{ item.key }}.key"
+    csr_path: "/etc/pgbouncer/{{ item.key }}.csr"
+    provider: selfsigned
+    mode: 0600
+    owner: postgres
+    group: postgres
+    force: no
+    state: present
+  when: item.value.pgbouncer_use_tls | default(pgbouncer_use_tls) and item.value.pgbouncer_tls_cert is not defined and item.value.pgbouncer_tls_key is not defined
+  with_dict:
+    "{{ clusters_config }}"
+
+- name: Add tls cert if specified
+  copy:
+    content: "{{ item.value.pgbouncer_tls_cert }}"
+    dest: "/etc/pgbouncer/{{ item.key }}.crt"
+    mode: 0600
+    owner: postgres
+    group: postgres
+  when: item.value.pgbouncer_use_tls | default(pgbouncer_use_tls) and item.value.pgbouncer_tls_cert is defined
   with_dict:
     "{{ clusters_config }}"
 

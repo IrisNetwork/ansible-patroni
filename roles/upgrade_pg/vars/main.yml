@@ -1,0 +1,2 @@
+upgrade_pg_deps: at
+pgbackrest_repo1_path: /var/lib/pgbackrest

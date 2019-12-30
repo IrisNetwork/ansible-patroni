@@ -1,0 +1,137 @@
+---
+
+- name: We only do upgrade step by step
+  fail:
+    msg: "Please upgrade only step by step, +1 on version !"
+  when: item.stdout | regex_search('(^[0-9][0-9])') | int + 1 != item.item.value.version | default(postgresql_version)
+
+- name: Test if checksum is enabled
+  shell:
+    /usr/lib/postgresql/{{ item.stdout | regex_search('(^[0-9][0-9])') }}/bin/pg_controldata -D {{ item.item.value.path }}/{{ item.stdout | regex_search('(^[0-9][0-9])') }}/postgresql/ | /usr/bin/grep "checksum version"
+  become_user: "{{ item.item.value.user }}"
+  register: is_checksum
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Install required dependances
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+    state: latest
+    name: "{{ upgrade_pg_deps }}"
+
+- name: Create the new datadir
+  file:
+    path: "{{ item.item.value.path }}/{{ item.item.value.version | default(postgresql_version) }}/postgresql"
+    state: directory
+    mode: 0700
+    owner: postgres
+    group: postgres
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Init the new cluster
+  shell:
+    /usr/lib/postgresql/{{ item.item.value.version | default(postgresql_version) }}/bin/initdb --pgdata={{ item.item.value.path }}/{{ item.item.value.version | default(postgresql_version) }}/postgresql{% if is_checksum and is_checksum != 0 %} --data-checksums{% endif %}
+  become_user: "{{ item.item.value.user }}"
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Check if pg_upgrade's check is ok
+  shell:
+    cmd: /usr/lib/postgresql/{{ item.item.value.version | default(postgresql_version) }}/bin/pg_upgrade -b /usr/lib/postgresql/{{ item.stdout | regex_search('(^[0-9][0-9])') }}/bin/ -B /usr/lib/postgresql/{{ item.item.value.version | default(postgresql_version) }}/bin/ -d {{ item.item.value.path }}/{{ item.stdout | regex_search('(^[0-9][0-9])') }}/postgresql/ -D {{ item.item.value.path }}/{{ item.item.value.version | default(postgresql_version) }}/postgresql/ -k -c
+    chdir: /tmp
+  become_user: "{{ item.item.value.user }}"
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Validate the archive dir
+  stat:
+    path: "{{ pgbackrest_repo1_path }}/archive/{{ item.item.key }}"
+  register: backup_dir_stat
+  when: "inventory_hostname in groups.backup"
+
+- name: Validate the backup dir
+  stat:
+    path: "{{ pgbackrest_repo1_path }}/backup/{{ item.item.key }}"
+  register: archive_dir_stat
+  when: "inventory_hostname in groups.backup"
+
+- name: Stop the old cluster
+  systemd:
+    daemon_reload: yes
+    name: "patroni-{{ item.item.key }}"
+    enabled: false
+    state: stopped
+  when: 'inventory_hostname in groups.database'
+
+- name: Real pg_upgrade
+  shell:
+    cmd: /usr/lib/postgresql/{{ item.item.value.version | default(postgresql_version) }}/bin/pg_upgrade -b /usr/lib/postgresql/{{ item.stdout | regex_search('(^[0-9][0-9])') }}/bin/ -B /usr/lib/postgresql/{{ item.item.value.version | default(postgresql_version) }}/bin/ -d {{ item.item.value.path }}/{{ item.stdout | regex_search('(^[0-9][0-9])') }}/postgresql/ -D {{ item.item.value.path }}/{{ item.item.value.version | default(postgresql_version) }}/postgresql/ -k -j {{ ansible_facts.processor_vcpus // 2 }}
+    chdir: /tmp
+  become_user: "{{ item.item.value.user }}"
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Copy old pg_hba
+  copy:
+    src: "{{ item.item.value.path }}/{{ item.stdout | regex_search('(^[0-9][0-9])') }}/postgresql/pg_hba.conf"
+    dest: "{{ item.item.value.path }}/{{ item.item.value.version | default(postgresql_version) }}/postgresql/pg_hba.conf"
+    remote_src: yes
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Archive old backup dir
+  command: "mv {{ pgbackrest_repo1_path }}/backup/{{ item.item.key }} {{ pgbackrest_repo1_path }}/backup/{{ item.item.key }}.{{ ansible_date_time.iso8601 }}"
+  when: 'inventory_hostname in groups.backup and backup_dir_stat.stat.exists'
+
+- name: Archive old archive dir
+  command: "mv {{ pgbackrest_repo1_path }}/archive/{{ item.item.key }} {{ pgbackrest_repo1_path }}/archive/{{ item.item.key }}.{{ ansible_date_time.iso8601 }}"
+  when: 'inventory_hostname in groups.backup and archive_dir_stat.stat.exists'
+
+- name: Clean etcd configuration
+  shell: etcdctl rm /service/{{ item.item.key }} --recursive
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+# Ansible etcd3 doesn't support recursive yet
+#  etcd3:
+#    host: localhost
+#    key: /service/{{ item.item.key }}
+#    state: absent
+
+- name: Update the datadir patroni configuration
+  lineinfile:
+    path: "/etc/patroni/{{ item.item.key }}.conf"
+    regexp: '^  data_dir: '
+    line: '  data_dir: {{ item.item.value.path }}/{{ item.item.value.version | default(postgresql_version) }}/postgresql'
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Update the datadir patroni configuration
+  lineinfile:
+    path: "/etc/patroni/{{ item.item.key }}.conf"
+    regexp: '^  bin_dir: '
+    line: '  bin_dir: /usr/lib/postgresql/{{ item.item.value.version | default(postgresql_version) }}/bin'
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Start Patroni on primary
+  systemd:
+    daemon_reload: yes
+    name: "patroni-{{ item.item.key }}"
+    enabled: true
+    state: started
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Update the stats
+  shell:
+    /tmp/analyze_new_cluster.sh
+  become_user: "{{ item.item.value.user }}"
+  when: 'inventory_hostname in groups.database and current_primary.results[0].json.role == "master"'
+
+- name: Create atd job to delete old data in the future
+  at:
+    command: "rm -r {{ item.item.value.path }}/{{ item.stdout | regex_search('(^[0-9][0-9])') }}"
+    count: "{{ upgrade_pg_day_to_keep }}"
+    units: days
+    unique: no
+  when: 'inventory_hostname in groups.database'
+
+- name: Create atd job to delete old backup in the future
+  at:
+    command: "rm -r {{ pgbackrest_repo1_path }}/archive/{{ item.item.key }} {{ pgbackrest_repo1_path }}/backup/{{ item.item.key }}"
+    count: "{{ upgrade_pg_day_to_keep }}"
+    units: days
+    unique: no
+  when: 'inventory_hostname in groups.backup'

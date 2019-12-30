@@ -1,5 +1,10 @@
 ---
 
+- name: Test if backup dir is a mountpoint
+  command: mountpoint -q {{ pgbackrest_repo1_path }}
+  #when: "inventory_hostname in groups.backup and backup_need_mountpoint"
+  when: "backup_need_mountpoint"
+
 - name: Install pgdg apt key
   apt_key:
     id: ACCC4CF8

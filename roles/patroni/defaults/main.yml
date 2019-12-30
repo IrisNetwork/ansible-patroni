@@ -1,8 +1,6 @@
 patroni_prereqs: pipexec,python3-etcd,python-psycopg2,python3-distutils
 patroni_package: patroni
 
-patroni_force_cluster_resync_on_failure: "true"
-
 postgresql_log_dir: "/var/log/postgresql/{{ item.key }}"
 
 patroni_log_level: "INFO"
@@ -29,3 +27,5 @@ patroni_bootstrap_dcs_postgresql_parameters_archive_timeout: "1800s"
 patroni_bootstrap_dcs_postgresql_parameters_archive_command: "/usr/bin/pgbackrest --stanza={{ item.key }} archive-push %p"
 patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_target_timeline: "latest"
 patroni_bootstrap_dcs_postgresql_recovery_conf_recovery_restore_command: '/usr/bin/pgbackrest --stanza={{ item.key }} archive-get %f "%p"'
+patroni_remove_data_directory_on_diverged_timelines: "false"
+patroni_use_pg_rewind: "false"

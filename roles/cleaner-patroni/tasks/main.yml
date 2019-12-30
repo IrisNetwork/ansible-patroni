@@ -93,7 +93,7 @@
 
 - name: Delete postgresql data directory
   file:
-    path: "{{ item.value.path }}/postgresql"
+    path: "{{ item.value.path }}/{{ item.value.version | default(postgresql_version) }}/postgresql"
     state: absent
   with_dict:
     "{{ clusters_config_todelete }}"

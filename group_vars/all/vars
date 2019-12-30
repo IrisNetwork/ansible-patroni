@@ -1,9 +1,13 @@
 # lvm
+use_lvm: true
 lvm_name_vg: "vg_root"
 lvm_name_lv_prefix: "lv_clients_"
 #lvm_default_size: "512M"
 lvm_default_size: "2G"
 lvm_fstype: "ext4"
+
+# mountpoint for backup
+backup_need_mountpoint: false
 
 # locales
 elao_locales_default: en_US.UTF-8
@@ -22,16 +26,116 @@ etcd_secure: false
 ## if yes, you can change this to true or --extra-vars "needcleaning=true"
 needcleaning: false
 
+# Do you want to do an upgrade ?
+## if yes, you can change this to true or --extra-vars "needcleaning=true"
+do_upgrade: false
+
+
 confd_config: "{{ clusters_config }}"
 etcd_cluster_name: patroni-etcd
 
 ssh_user: postgres
 ssh_key_type: ed25519
 
+pgbouncer_use_tls: false
+pgbouncer_client_tls_sslmode: allow
+pgbouncer_client_tls_ciphers: normal
+
 # configuration métier
 clusters_config:
   pgpuppet04:
     port: 5434
+    pgbouncer_use_tls: true
+    pgbouncer_tls_sslmode: allow
+    pgbouncer_ssl_size: 4096
+    pgbouncer_tls_cert: |
+      -----BEGIN CERTIFICATE-----
+      MIIF/TCCA+WgAwIBAgIUEEHzelrPdOP5hz/W7roqtoGzKDowDQYJKoZIhvcNAQEL
+      BQAwgY0xCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApXYXNoaW5ndG9uMRAwDgYDVQQH
+      DAdSZWRtb25kMRUwEwYDVQQKDAxDcnVuY2h5IERhdGExGjAYBgNVBAMMEWNydW5j
+      aHktdGVzdHVzZXIxMSQwIgYJKoZIhvcNAQkBFhV0ZXN0dXNlcjFAZXhhbXBsZS5j
+      b20wHhcNMTkxMjIzMTU1MjUxWhcNMjkxMjIwMTU1MjUxWjCBjTELMAkGA1UEBhMC
+      VVMxEzARBgNVBAgMCldhc2hpbmd0b24xEDAOBgNVBAcMB1JlZG1vbmQxFTATBgNV
+      BAoMDENydW5jaHkgRGF0YTEaMBgGA1UEAwwRY3J1bmNoeS10ZXN0dXNlcjExJDAi
+      BgkqhkiG9w0BCQEWFXRlc3R1c2VyMUBleGFtcGxlLmNvbTCCAiIwDQYJKoZIhvcN
+      AQEBBQADggIPADCCAgoCggIBAM4VsaVhiAtDKGOtJCuOlVFLKV6/xaTH7xBd66rQ
+      uWsg1/FiTmgDzUjwIJPz0tI+8m1umtoCDaXQjJ3TIy4EsyVYqPKNOwGNChtu/qqQ
+      mcZj4sn0CliBCpGa3x4x1VlV3F43dXpWvD7uCpBMjPRHgVlsVYqq/wt2y25Cy9dv
+      zwnasCX120Qbyhjf4lSrDgcBZ8m55lN8VuRzrlQvnrmKokKg0yiQy1FIKWFlKPkT
+      uzioFSFSCjGHycHa/7DjCjRrBTzjrUuTa+VYrJmWBp5KOIUSDcYKM0oDvaNcprpJ
+      tdJXe1zXQKV6d7dvmtEPe1b3OaI+qw2NVp75yTC3e3Iz39aFE/k2X9SmEWoDiV2U
+      BvqSUrzTSc89wOZw88u9x5+r0P6vpDGTVg31RBuAeCVaoV+3QG4S3MOy615lLyRV
+      YxQtFd1MwOe7SV5bfJrZ10lplfEPoRm/IGAV54vGujiFXSU+XfqFlh6odpseNbzy
+      vjeuWY95M4gN03udjbSCIO8w16bcUgrqBKk1PUEttYfdW95V7KC4yh8YTj1utQJv
+      vBxmdI8s20L6qYiUXrI36hsDj2iSiLtlzM7k06pFXEfd6d5k+3a7ZS9M8OgaLB7o
+      H3Toxypoew5T00tC9nlDtW6jCzo+DKFIj2u2UZy1He06ZvXXy7NqRBe+n0L076eE
+      4e1jAgMBAAGjUzBRMB0GA1UdDgQWBBQyMOTeYvQBxnni7bXgq6OsxaXX1jAfBgNV
+      HSMEGDAWgBQyMOTeYvQBxnni7bXgq6OsxaXX1jAPBgNVHRMBAf8EBTADAQH/MA0G
+      CSqGSIb3DQEBCwUAA4ICAQABetRbcQzw9ohEfjkQStMYpdNG8UfmQQyCYKxD71mc
+      0zCCA0+7PxM8GtsWeIrajb5vqt9tdY1LGtDma1hiYjFF7hAeGNEENqm+eiXExRaa
+      57YR6Wc+JnLZI5AoZX1rvUy7Yv/Cx5vT4t9afOTeZDoHqxwJfuAkjPAmtgxPNGu+
+      BobJiTwthZ/JAGA/MqTwZEtDnFEQZMOl/S2lX+ES6Kg6EwB2L8AOmAySi27BPiyN
+      i8USZU7AvWuGn84ibvS+7SICAw7Pkpi/uEBkr3pARnG4ydtrsvRStx50GuFi8LXz
+      oLuyqSw2d5l6PwfSL2w5aLF6utFAiAx2qpTVsdbdYBF4bPHo1G4d2JJj327WaKvc
+      lHR0fzELlATYQXHfRULY6VH67Q0wN6/SfSLNRwcctfnk/ncrS1es9CyTgDLb/9Ps
+      wQwmFPSCb8mk2g1HYjTxovRO7cs+5N66ZingnbIoWecytfxDBLgh5Q02NkUjxNyW
+      pxwFQxGVDvYRlsoXx1cOAUEXt5XbOvq3pmwJyGAyeCd/o4sf1nYKdPhvV4lDx67v
+      VZ4qo9pMMbHH4E9HycyLa/KWv3fRr/BowQ4fY8Ui6sU6HjdDTLcejjSQvgi2YBXu
+      Ovf1ExaHTPX1biV3DJdAZNN1CqLEFsQbwqiBvqjFb1EUsoPMdZo/iqp8LcYP+SYe
+      jA==
+      -----END CERTIFICATE-----
+    pgbouncer_tls_key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      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
+      -----END RSA PRIVATE KEY-----
     tuning:
       autovacuum_multixact_freeze_max_age: 400000000
       max_connections: 500
@@ -43,7 +147,7 @@ clusters_config:
       log_rotation_age: "1440"
       log_rotation_size: "0"
       log_min_duration_statement: "380"
-      log_line_prefix: "user=%u,db=%d,app=%a,client=%h "
+      log_line_prefix: "%t [%p]: user=%u,db=%d,app=%a,client=%h "
       log_checkpoints: "on"
       log_connections: "on"
       log_disconnections: "on"
@@ -65,11 +169,16 @@ clusters_config:
     admin_password: "ldnflkerenrkleahrmr"
     pgbouncer_max_client_conn: "100"
   client42:
-    port: 5436
     version: 11
+    # default is :
+    # state: started
+    # To stop the service :
+    # state: stopped
+    port: 5436
     path: "/app/client42"
     user: "postgres"
     admin_password: "ldnflkerenrkleahrmr"
+    # version: 12
     # pgbouncer_port: "{{ port + 1000 }}"
     # patroni_port: "{{ port + 2000 }}"
     # pgbouncer_user: "pgbouncer"

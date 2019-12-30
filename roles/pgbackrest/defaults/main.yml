@@ -11,3 +11,5 @@ pgbackrest_spool_path: /var/spool/pgbackrest
 pgbackrest_archive_push_queue_max: 500M
 pgbackrest_compress_level_network: 3
 pgbackrest_startfast: y
+
+backup_need_mountpoint: true

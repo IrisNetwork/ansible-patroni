@@ -1,0 +1,3 @@
+---
+
+pgbouncer_ssl_packages: openssl,python-cryptography

@@ -1,12 +1,12 @@
 #!/bin/sh
 cat << 'EOF'
-m     m                        "                 
-#  #  #  mmm    m mm  m mm   mmm    m mm    mmmm 
-" #"# # "   #   #"  " #"  #    #    #"  #  #" "# 
- ## ##" m"""#   #     #   #    #    #   #  #   # 
- #   #  "mm"#   #     #   #  mm#mm  #   #  "#m"# 
-                                            m  # 
-                                             ""  
+m     m                        "
+#  #  #  mmm    m mm  m mm   mmm    m mm    mmmm
+" #"# # "   #   #"  " #"  #    #    #"  #  #" "#
+ ## ##" m"""#   #     #   #    #    #   #  #   #
+ #   #  "mm"#   #     #   #  mm#mm  #   #  "#m"#
+                                            m  #
+                                             ""
 This server is fully managed by Ansible.
 You don't want to edit any file, really.
 
